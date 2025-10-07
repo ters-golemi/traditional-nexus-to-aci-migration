@@ -16,7 +16,7 @@ The migration guide in this repository addresses a data center environment with 
 
 ## Documentation
 
-### 📘 [Complete Migration Guide](MIGRATION_GUIDE.md)
+### [Complete Migration Guide](MIGRATION_GUIDE.md)
 
 The comprehensive migration guide includes:
 
@@ -25,10 +25,10 @@ The comprehensive migration guide includes:
 - **ACI Architecture Overview**: Understanding the target architecture
 - **Planning Phase**: Design decisions and preparation (5 weeks)
 - **Migration Procedure**: Step-by-step migration process (30 days)
-  - Day 1: ACI fabric preparation
-  - Day 2-4: Pilot migration
-  - Day 5-10: Bulk migration
-  - Day 11-30: Full transition and optimization
+ - Day 1: ACI fabric preparation
+ - Day 2-4: Pilot migration
+ - Day 5-10: Bulk migration
+ - Day 11-30: Full transition and optimization
 - **Validation and Testing**: Pre and post-migration validation procedures
 - **Rollback Procedures**: Risk mitigation and rollback strategies
 - **Post-Migration Tasks**: Optimization and operational procedures
@@ -37,11 +37,11 @@ The comprehensive migration guide includes:
 
 ## Key Features
 
-✅ **Cisco Validated Designs**: Follows Cisco best practices and validated designs  
-✅ **Zero-Downtime Goal**: Parallel deployment minimizes service disruption  
-✅ **Phased Approach**: Gradual migration with validation at each stage  
-✅ **Rollback Procedures**: Clear rollback strategies for risk mitigation  
-✅ **Comprehensive Documentation**: Detailed procedures, checklists, and templates  
+- **Cisco Validated Designs**: Follows Cisco best practices and validated designs 
+- **Zero-Downtime Goal**: Parallel deployment minimizes service disruption 
+- **Phased Approach**: Gradual migration with validation at each stage 
+- **Rollback Procedures**: Clear rollback strategies for risk mitigation 
+- **Comprehensive Documentation**: Detailed procedures, checklists, and templates 
 
 ## Quick Start
 
@@ -70,18 +70,18 @@ The migration transforms the traditional three-tier Nexus architecture into an A
 **From (Traditional Nexus):**
 ```
 Core Layer (2x Nexus) - L3 Routing
-    ↕ vPC
+ ↕ vPC
 Aggregation Layer (2x Nexus)
-    ↕
+ ↕
 Access Layer (2x Nexus) → Servers/ESXi
 ```
 
 **To (ACI):**
 ```
 APIC Cluster (3x Controllers)
-    ↓ Management
+ ↓ Management
 Spine Layer (2+ Spines) - ECMP Fabric
-    ↕ Full Mesh
+ ↕ Full Mesh
 Leaf Layer (2+ Leafs) → Servers/ESXi
 ```
 
@@ -89,8 +89,8 @@ Leaf Layer (2+ Leafs) → Servers/ESXi
 
 ```
 .
-├── README.md                 # This file
-└── MIGRATION_GUIDE.md       # Complete migration documentation
+├── README.md # This file
+└── MIGRATION_GUIDE.md # Complete migration documentation
 ```
 
 ## Prerequisites

@@ -43,38 +43,38 @@ This guide provides a comprehensive step-by-step procedure for migrating from a 
 Before starting migration, document:
 
 1. **Network Inventory**
-   - Switch models and software versions
-   - Interface configurations and assignments
-   - vPC domain configurations
-   - Port-channel configurations
+ - Switch models and software versions
+ - Interface configurations and assignments
+ - vPC domain configurations
+ - Port-channel configurations
 
 2. **VLAN Information**
-   - VLAN IDs and names
-   - VLAN-to-subnet mappings
-   - STP configurations
-   - VLAN trunking details
+ - VLAN IDs and names
+ - VLAN-to-subnet mappings
+ - STP configurations
+ - VLAN trunking details
 
 3. **IP Addressing**
-   - Management IP addresses
-   - Gateway addresses for each VLAN
-   - HSRP/VRRP configurations
-   - Routing protocol configurations
+ - Management IP addresses
+ - Gateway addresses for each VLAN
+ - HSRP/VRRP configurations
+ - Routing protocol configurations
 
 4. **Application Topology**
-   - Application dependencies
-   - Server-to-VLAN mappings
-   - ESXi host configurations
-   - Network policies and ACLs
+ - Application dependencies
+ - Server-to-VLAN mappings
+ - ESXi host configurations
+ - Network policies and ACLs
 
 5. **Quality of Service (QoS)**
-   - QoS policies
-   - Traffic classification
-   - Rate limiting configurations
+ - QoS policies
+ - Traffic classification
+ - Rate limiting configurations
 
 6. **Security Policies**
-   - ACLs and security policies
-   - Port security configurations
-   - Storm control settings
+ - ACLs and security policies
+ - Port security configurations
+ - Storm control settings
 
 ---
 
@@ -147,19 +147,19 @@ Before starting migration, document:
 ### ACI Fabric Architecture
 
 ```
-                    [APIC Cluster]
-                          |
-                    Out-of-Band Mgmt
-                          |
-        +-----------------+------------------+
-        |                                    |
-    [Spine-1]                            [Spine-2]
-        |                                    |
-    +---+---+---+                        +---+---+---+
-    |   |   |   |                        |   |   |   |
-[Leaf-1][Leaf-2][Leaf-3]            [Leaf-1][Leaf-2][Leaf-3]
-    |       |       |                    |       |       |
-Servers  ESXi   Storage              Servers  ESXi   Storage
+ [APIC Cluster]
+ |
+ Out-of-Band Mgmt
+ |
+ +-----------------+------------------+
+ | |
+ [Spine-1] [Spine-2]
+ | |
+ +---+---+---+ +---+---+---+
+ | | | | | | | |
+[Leaf-1][Leaf-2][Leaf-3] [Leaf-1][Leaf-2][Leaf-3]
+ | | | | | |
+Servers ESXi Storage Servers ESXi Storage
 ```
 
 ### ACI Policy Model
@@ -219,48 +219,48 @@ show mac address-table count
 
 #### 1.3 ACI Design
 - **Tenant Design**: Create tenant structure
-  - Common Tenant: Shared services
-  - Application Tenant: Application-specific policies
-  
+ - Common Tenant: Shared services
+ - Application Tenant: Application-specific policies
+ 
 - **VRF Design**: 
-  - Maintain existing routing domains
-  - Plan for VRF overlap if needed
-  
+ - Maintain existing routing domains
+ - Plan for VRF overlap if needed
+ 
 - **Bridge Domain Design**:
-  - One BD per existing VLAN (initial mapping)
-  - Plan subnet configurations
-  - Configure gateway IP addresses
-  
+ - One BD per existing VLAN (initial mapping)
+ - Plan subnet configurations
+ - Configure gateway IP addresses
+ 
 - **EPG Design**:
-  - Map VLANs to EPGs
-  - Define static or dynamic port bindings
-  - Plan for VMM integration
+ - Map VLANs to EPGs
+ - Define static or dynamic port bindings
+ - Plan for VMM integration
 
 - **Contract Design**:
-  - Document required communication
-  - Create security matrix (EPG-to-EPG)
-  - Define filters and subjects
+ - Document required communication
+ - Create security matrix (EPG-to-EPG)
+ - Define filters and subjects
 
 #### 1.4 IP Addressing Plan
 - **ACI Infrastructure**:
-  - TEP Pool: 10.0.0.0/16 (example)
-  - Multicast TEP: 225.0.0.0/15
-  - Infrastructure VLAN: 4094
-  
+ - TEP Pool: 10.0.0.0/16 (example)
+ - Multicast TEP: 225.0.0.0/15
+ - Infrastructure VLAN: 4094
+ 
 - **Migration Network**:
-  - Transit VLANs for L3Out
-  - IP addresses for border leaf connectivity
+ - Transit VLANs for L3Out
+ - IP addresses for border leaf connectivity
 
 #### 1.5 Integration Points
 - **L3Out Configuration**:
-  - Connectivity to existing Nexus core
-  - OSPF/BGP peering configuration
-  - Route redistribution plan
-  
+ - Connectivity to existing Nexus core
+ - OSPF/BGP peering configuration
+ - Route redistribution plan
+ 
 - **VMware Integration**:
-  - VMM domain creation
-  - vCenter integration
-  - Port group automation
+ - VMM domain creation
+ - vCenter integration
+ - Port group automation
 
 ### Phase 2: Lab Validation (Week 3-4)
 
@@ -370,10 +370,10 @@ Name: BD-VLAN10
 VRF: PROD-VRF
 L2 Unknown Unicast: Flood
 L3 Configurations:
-  - Subnet: 10.10.10.1/24
-  - Scope: Public (if need routing)
-  - Shared between VRF: No
-  - Make this IP address primary: Yes
+ - Subnet: 10.10.10.1/24
+ - Scope: Public (if need routing)
+ - Shared between VRF: No
+ - Make this IP address primary: Yes
 ```
 
 #### Step 1.5: Create Application Profiles and EPGs
@@ -400,8 +400,8 @@ Entry: http (TCP 80), https (TCP 443)
 Tenants > Production > Security Policies > Contracts
 Name: Web-Contract
 Subjects > Add Subject
-  - Name: Web-Subject
-  - Filters: Web-Filter
+ - Name: Web-Subject
+ - Filters: Web-Filter
 
 # Apply contract to EPGs
 Provider EPG: Web-EPG
@@ -566,7 +566,7 @@ Mode: trunk (for ESXi) or access (for servers)
 1. Ping default gateway
 2. Test application access
 3. Check ACI learned endpoints
-   - Tenants > Operational > Endpoints
+ - Tenants > Operational > Endpoints
 4. Verify contract statistics
 5. Run application smoke tests
 ```
@@ -626,10 +626,10 @@ For each batch:
 Virtual Networking > VMware > VMM Domain
 Name: vCenter-VMM
 vCenter Details:
-  - vCenter IP: <vCenter IP>
-  - Username: <ACI user>
-  - Password: <password>
-  - Datacenter: <DC name>
+ - vCenter IP: <vCenter IP>
+ - Username: <ACI user>
+ - Password: <password>
+ - Datacenter: <DC name>
 ```
 
 #### Step 6.2: Associate EPGs with VMM
@@ -941,13 +941,13 @@ Risk: Low
 
 Steps:
 1. For physical servers:
-   - Change NIC teaming back to Nexus
-   - Or move cable back to Nexus port
+ - Change NIC teaming back to Nexus
+ - Or move cable back to Nexus port
 
 2. For ESXi VMs:
-   - Edit VM network adapter
-   - Change port group back to Nexus
-   - Or change vmnic failover order
+ - Edit VM network adapter
+ - Change port group back to Nexus
+ - Or change vmnic failover order
 
 3. Validate connectivity
 4. Document rollback reason
@@ -1036,20 +1036,20 @@ Activities:
 #### Documentation Updates
 ```
 1. Network diagrams
-   - Physical topology
-   - Logical topology
-   - Application flows
+ - Physical topology
+ - Logical topology
+ - Application flows
 
 2. Configuration documentation
-   - Tenant configurations
-   - EPG mappings
-   - Contract definitions
-   - L3Out configurations
+ - Tenant configurations
+ - EPG mappings
+ - Contract definitions
+ - L3Out configurations
 
 3. Operational procedures
-   - Daily operations
-   - Troubleshooting guides
-   - Escalation procedures
+ - Daily operations
+ - Troubleshooting guides
+ - Escalation procedures
 ```
 
 #### Knowledge Transfer
@@ -1070,19 +1070,19 @@ Hands-on Labs:
 #### Automation Development
 ```
 1. Provisioning automation
-   - New EPG creation
-   - Contract templates
-   - Port binding automation
+ - New EPG creation
+ - Contract templates
+ - Port binding automation
 
 2. Monitoring automation
-   - Health score alerts
-   - Capacity thresholds
-   - Performance baselines
+ - Health score alerts
+ - Capacity thresholds
+ - Performance baselines
 
 3. Backup automation
-   - Configuration backups
-   - Scheduled exports
-   - Version control
+ - Configuration backups
+ - Scheduled exports
+ - Version control
 ```
 
 ### Month 2-3 Post-Migration
@@ -1090,50 +1090,50 @@ Hands-on Labs:
 #### Performance Optimization
 ```
 1. Review traffic patterns
-   - Identify hotspots
-   - Optimize flow distribution
-   - Adjust QoS policies
+ - Identify hotspots
+ - Optimize flow distribution
+ - Adjust QoS policies
 
 2. Capacity planning
-   - Forecast growth
-   - Plan leaf expansion
-   - Evaluate bandwidth needs
+ - Forecast growth
+ - Plan leaf expansion
+ - Evaluate bandwidth needs
 ```
 
 #### Advanced Features Implementation
 ```
 1. Micro-segmentation
-   - Implement zero-trust security
-   - Create micro-EPGs
-   - Granular contracts
+ - Implement zero-trust security
+ - Create micro-EPGs
+ - Granular contracts
 
 2. Service graphs
-   - Integrate load balancers
-   - Add firewall services
-   - Deploy SSL offload
+ - Integrate load balancers
+ - Add firewall services
+ - Deploy SSL offload
 
 3. Multi-site integration (if applicable)
-   - Configure multi-site orchestrator
-   - Extend policies across sites
-   - Implement stretched EPGs
+ - Configure multi-site orchestrator
+ - Extend policies across sites
+ - Implement stretched EPGs
 ```
 
 #### Process Integration
 ```
 1. Change management
-   - Update change procedures
-   - Define approval workflows
-   - Document standard changes
+ - Update change procedures
+ - Define approval workflows
+ - Document standard changes
 
 2. Incident management
-   - Update incident response
-   - Define escalation paths
-   - Create troubleshooting guides
+ - Update incident response
+ - Define escalation paths
+ - Create troubleshooting guides
 
 3. Monitoring integration
-   - SNMP integration
-   - Syslog forwarding
-   - API-based monitoring
+ - SNMP integration
+ - Syslog forwarding
+ - API-based monitoring
 ```
 
 ---
@@ -1208,58 +1208,58 @@ Contract Strategy:
 #### Configuration Management
 ```
 1. Version Control
-   - Export configurations regularly
-   - Maintain configuration history
-   - Document all changes
+ - Export configurations regularly
+ - Maintain configuration history
+ - Document all changes
 
 2. Backup Strategy
-   - Automated daily backups
-   - Off-site backup storage
-   - Test restore procedures quarterly
+ - Automated daily backups
+ - Off-site backup storage
+ - Test restore procedures quarterly
 
 3. Change Control
-   - All changes through change management
-   - Document rationale for changes
-   - Schedule changes during maintenance windows
+ - All changes through change management
+ - Document rationale for changes
+ - Schedule changes during maintenance windows
 ```
 
 #### Monitoring and Alerting
 ```
 1. Health Score Monitoring
-   - Alert on health score < 90
-   - Daily health reports
-   - Trend analysis
+ - Alert on health score < 90
+ - Daily health reports
+ - Trend analysis
 
 2. Critical Alerts
-   - Fabric link down
-   - APIC cluster issues
-   - Critical fault events
+ - Fabric link down
+ - APIC cluster issues
+ - Critical fault events
 
 3. Capacity Monitoring
-   - Interface utilization
-   - Endpoint scale
-   - Contract scale
+ - Interface utilization
+ - Endpoint scale
+ - Contract scale
 ```
 
 #### Security Best Practices
 ```
 1. Access Control
-   - Implement role-based access control (RBAC)
-   - Use strong passwords
-   - Enable MFA for administrative access
-   - Regular access reviews
+ - Implement role-based access control (RBAC)
+ - Use strong passwords
+ - Enable MFA for administrative access
+ - Regular access reviews
 
 2. Security Policies
-   - Default deny posture
-   - Micro-segmentation for critical apps
-   - Regular security audits
-   - Compliance reporting
+ - Default deny posture
+ - Micro-segmentation for critical apps
+ - Regular security audits
+ - Compliance reporting
 
 3. Network Security
-   - Disable unused ports
-   - Configure port security
-   - Enable DHCP snooping
-   - Implement dynamic ARP inspection
+ - Disable unused ports
+ - Configure port security
+ - Enable DHCP snooping
+ - Implement dynamic ARP inspection
 ```
 
 ### Performance Optimization
@@ -1267,32 +1267,32 @@ Contract Strategy:
 #### Fabric Optimization
 ```
 1. Load Balancing
-   - Utilize ECMP across spine switches
-   - Balance workload across leaf switches
-   - Optimize vPC+ configurations
+ - Utilize ECMP across spine switches
+ - Balance workload across leaf switches
+ - Optimize vPC+ configurations
 
 2. MTU Configuration
-   - Enable jumbo frames (9000 MTU)
-   - Consistent MTU across fabric
-   - Verify endpoint MTU support
+ - Enable jumbo frames (9000 MTU)
+ - Consistent MTU across fabric
+ - Verify endpoint MTU support
 
 3. QoS Configuration
-   - Classify traffic appropriately
-   - Configure priority flow control if needed
-   - Monitor queue depths
+ - Classify traffic appropriately
+ - Configure priority flow control if needed
+ - Monitor queue depths
 ```
 
 #### Endpoint Optimization
 ```
 1. Endpoint Learning
-   - Enable IP data plane learning
-   - Configure enforce subnet check
-   - Optimize endpoint retention policies
+ - Enable IP data plane learning
+ - Configure enforce subnet check
+ - Optimize endpoint retention policies
 
 2. Multicast Optimization
-   - Configure PIM for multicast traffic
-   - Optimize multicast tree building
-   - Use L3 multicast where possible
+ - Configure PIM for multicast traffic
+ - Optimize multicast tree building
+ - Use L3 multicast where possible
 ```
 
 ### Scalability Considerations
@@ -1300,19 +1300,19 @@ Contract Strategy:
 #### Planning for Growth
 ```
 1. Leaf Switch Capacity
-   - Monitor endpoint count per leaf
-   - Plan for 80% utilization maximum
-   - Add leaf pairs as needed
+ - Monitor endpoint count per leaf
+ - Plan for 80% utilization maximum
+ - Add leaf pairs as needed
 
 2. Spine Capacity
-   - Monitor spine bandwidth utilization
-   - Plan for 50% utilization for growth
-   - Add spines before 70% utilization
+ - Monitor spine bandwidth utilization
+ - Plan for 50% utilization for growth
+ - Add spines before 70% utilization
 
 3. APIC Cluster
-   - Maintain 3-node cluster minimum
-   - Monitor CPU and memory
-   - Plan for controller replacement cycle
+ - Maintain 3-node cluster minimum
+ - Monitor CPU and memory
+ - Plan for controller replacement cycle
 ```
 
 #### Scale Limits
@@ -1331,25 +1331,25 @@ Recommendation: Operate at 60-70% of maximum scale
 #### Required Documentation
 ```
 1. Architecture Documentation
-   - High-level design
-   - Network topology diagrams
-   - Policy model documentation
+ - High-level design
+ - Network topology diagrams
+ - Policy model documentation
 
 2. Configuration Documentation
-   - Tenant configurations
-   - VLAN to EPG mappings
-   - Contract definitions
-   - L3Out configurations
+ - Tenant configurations
+ - VLAN to EPG mappings
+ - Contract definitions
+ - L3Out configurations
 
 3. Operational Documentation
-   - Standard operating procedures
-   - Troubleshooting guides
-   - Runbooks for common tasks
+ - Standard operating procedures
+ - Troubleshooting guides
+ - Runbooks for common tasks
 
 4. Contact Information
-   - Support escalation
-   - Vendor contacts
-   - Emergency procedures
+ - Support escalation
+ - Vendor contacts
+ - Emergency procedures
 ```
 
 #### Documentation Format
@@ -1422,47 +1422,47 @@ Update Frequency:
 
 ```
 Network Assessment:
-☐ Document all Nexus switch configurations
-☐ Map all VLANs and subnets
-☐ Document vPC configurations
-☐ Identify all connected endpoints
-☐ Document routing protocols and configurations
-☐ Map application dependencies
-☐ Identify security policies and ACLs
-☐ Document QoS policies
-☐ Backup all configurations
+- Document all Nexus switch configurations
+- Map all VLANs and subnets
+- Document vPC configurations
+- Identify all connected endpoints
+- Document routing protocols and configurations
+- Map application dependencies
+- Identify security policies and ACLs
+- Document QoS policies
+- Backup all configurations
 
 ACI Preparation:
-☐ Procure ACI hardware (APIC, Spine, Leaf)
-☐ Verify firmware compatibility
-☐ Plan IP addressing (TEP pool, infra VLAN)
-☐ Design tenant structure
-☐ Design VRF architecture
-☐ Map VLANs to Bridge Domains and EPGs
-☐ Design contract structure
-☐ Plan L3Out configuration
-☐ Design VMM integration
+- Procure ACI hardware (APIC, Spine, Leaf)
+- Verify firmware compatibility
+- Plan IP addressing (TEP pool, infra VLAN)
+- Design tenant structure
+- Design VRF architecture
+- Map VLANs to Bridge Domains and EPGs
+- Design contract structure
+- Plan L3Out configuration
+- Design VMM integration
 
 Lab Validation:
-☐ Build lab environment
-☐ Test migration procedures
-☐ Validate application connectivity
-☐ Test failover scenarios
-☐ Document timing and issues
+- Build lab environment
+- Test migration procedures
+- Validate application connectivity
+- Test failover scenarios
+- Document timing and issues
 
 Change Management:
-☐ Create change request
-☐ Obtain approvals
-☐ Schedule maintenance windows
-☐ Notify stakeholders
-☐ Prepare rollback plan
+- Create change request
+- Obtain approvals
+- Schedule maintenance windows
+- Notify stakeholders
+- Prepare rollback plan
 
 Team Preparation:
-☐ Train operations team on ACI
-☐ Assign roles and responsibilities
-☐ Prepare runbooks
-☐ Set up communication channels
-☐ Prepare monitoring and alerting
+- Train operations team on ACI
+- Assign roles and responsibilities
+- Prepare runbooks
+- Set up communication channels
+- Prepare monitoring and alerting
 ```
 
 ### Appendix B: VLAN to EPG Mapping Template
