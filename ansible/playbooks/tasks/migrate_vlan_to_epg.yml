@@ -1,0 +1,52 @@
+---
+# Task to migrate a single VLAN to EPG
+# This task is included from the main migration playbook
+
+- name: "Create EPG {{ vlan_data.ACI_EPG }} for VLAN {{ vlan_id }}"
+  uri:
+    url: "https://{{ apic_host }}/api/mo/uni/tn-{{ vlan_data.ACI_Tenant }}/ap-{{ vlan_data.ACI_Application_Profile }}.json"
+    method: POST
+    headers:
+      Cookie: "APIC-cookie={{ apic_token }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      fvAEPg:
+        attributes:
+          name: "{{ vlan_data.ACI_EPG }}"
+          descr: "Migrated from Nexus VLAN {{ vlan_id }} - {{ vlan_data.VLAN_Name }}"
+        children:
+          - fvRsBd:
+              attributes:
+                tnFvBDName: "{{ vlan_data.ACI_Bridge_Domain }}"
+    validate_certs: "{{ validate_certs }}"
+    status_code: [200, 201]
+  register: epg_creation
+
+- name: "Verify EPG {{ vlan_data.ACI_EPG }} creation"
+  debug:
+    msg: "EPG {{ vlan_data.ACI_EPG }} created with status {{ epg_creation.status }}"
+
+- name: "Create static path binding for EPG {{ vlan_data.ACI_EPG }}"
+  uri:
+    url: "https://{{ apic_host }}/api/mo/uni/tn-{{ vlan_data.ACI_Tenant }}/ap-{{ vlan_data.ACI_Application_Profile }}/epg-{{ vlan_data.ACI_EPG }}.json"
+    method: POST
+    headers:
+      Cookie: "APIC-cookie={{ apic_token }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      fvRsPathAtt:
+        attributes:
+          tDn: "topology/pod-1/paths-101/pathep-[eth1/1]"
+          encap: "vlan-{{ vlan_id }}"
+          mode: "regular"
+    validate_certs: "{{ validate_certs }}"
+    status_code: [200, 201]
+  register: path_binding
+
+- name: "Log migration step for VLAN {{ vlan_id }}"
+  lineinfile:
+    path: "../migration_output/migration.log"
+    line: "{{ ansible_date_time.iso8601 }}: Migrated VLAN {{ vlan_id }} ({{ vlan_data.VLAN_Name }}) to EPG {{ vlan_data.ACI_EPG }}"
+    create: yes

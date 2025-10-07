@@ -1,0 +1,340 @@
+---
+# ACI Migration Automation Playbook
+# This playbook orchestrates the complete migration from Nexus to ACI
+
+- name: Nexus to ACI Migration - Pre-Migration Checks
+  hosts: localhost
+  gather_facts: no
+  vars:
+    apic_host: "{{ apic_ip }}"
+    apic_username: "{{ apic_user }}"
+    apic_password: "{{ apic_pass }}"
+    validate_certs: false
+    
+  tasks:
+    - name: Verify APIC connectivity
+      uri:
+        url: "https://{{ apic_host }}/api/aaaLogin.json"
+        method: POST
+        body_format: json
+        body:
+          aaaUser:
+            attributes:
+              name: "{{ apic_username }}"
+              pwd: "{{ apic_password }}"
+        validate_certs: "{{ validate_certs }}"
+        status_code: 200
+      register: apic_login
+      
+    - name: Extract authentication token
+      set_fact:
+        apic_token: "{{ apic_login.json.imdata[0].aaaLogin.attributes.token }}"
+        
+    - name: Check fabric health
+      uri:
+        url: "https://{{ apic_host }}/api/class/fabricHealthTotal.json"
+        method: GET
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+        validate_certs: "{{ validate_certs }}"
+      register: fabric_health
+      
+    - name: Display fabric health status
+      debug:
+        msg: "Fabric health score: {{ item.fabricHealthTotal.attributes.healthAvg }}"
+      loop: "{{ fabric_health.json.imdata }}"
+      when: fabric_health.json.imdata | length > 0
+      
+    - name: Check for critical faults
+      uri:
+        url: "https://{{ apic_host }}/api/class/faultInst.json?query-target-filter=eq(faultInst.severity,\"critical\")"
+        method: GET
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+        validate_certs: "{{ validate_certs }}"
+      register: critical_faults
+      
+    - name: Fail if critical faults exist
+      fail:
+        msg: "Critical faults detected: {{ critical_faults.json.imdata | length }} faults found"
+      when: critical_faults.json.imdata | length > 5
+      
+    - name: Backup existing configurations
+      include_tasks: tasks/backup_configs.yml
+
+
+- name: Deploy ACI Tenant Configuration
+  hosts: localhost
+  gather_facts: no
+  vars:
+    apic_host: "{{ apic_ip }}"
+    apic_username: "{{ apic_user }}"
+    apic_password: "{{ apic_pass }}"
+    validate_certs: false
+    
+  tasks:
+    - name: Authenticate with APIC
+      uri:
+        url: "https://{{ apic_host }}/api/aaaLogin.json"
+        method: POST
+        body_format: json
+        body:
+          aaaUser:
+            attributes:
+              name: "{{ apic_username }}"
+              pwd: "{{ apic_password }}"
+        validate_certs: "{{ validate_certs }}"
+        status_code: 200
+      register: apic_login
+      
+    - name: Extract authentication token
+      set_fact:
+        apic_token: "{{ apic_login.json.imdata[0].aaaLogin.attributes.token }}"
+        
+    - name: Create Production Tenant
+      uri:
+        url: "https://{{ apic_host }}/api/mo/uni.json"
+        method: POST
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ lookup('file', '../configs/aci/tenant-configs/production-tenant.json') | from_json }}"
+        validate_certs: "{{ validate_certs }}"
+        status_code: [200, 201]
+      register: tenant_creation
+      
+    - name: Verify tenant creation
+      debug:
+        msg: "Tenant creation status: {{ tenant_creation.status }}"
+        
+    - name: Wait for tenant to be fully deployed
+      pause:
+        seconds: 30
+        
+    - name: Validate tenant deployment
+      uri:
+        url: "https://{{ apic_host }}/api/mo/uni/tn-Production.json"
+        method: GET
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+        validate_certs: "{{ validate_certs }}"
+      register: tenant_validation
+      
+    - name: Confirm tenant exists
+      assert:
+        that:
+          - tenant_validation.json.imdata | length > 0
+        fail_msg: "Production tenant was not created successfully"
+        success_msg: "Production tenant created and validated successfully"
+
+
+- name: Configure Interface Policies and Profiles
+  hosts: localhost
+  gather_facts: no
+  vars:
+    apic_host: "{{ apic_ip }}"
+    apic_username: "{{ apic_user }}"
+    apic_password: "{{ apic_pass }}"
+    validate_certs: false
+    
+  tasks:
+    - name: Authenticate with APIC
+      uri:
+        url: "https://{{ apic_host }}/api/aaaLogin.json"
+        method: POST
+        body_format: json
+        body:
+          aaaUser:
+            attributes:
+              name: "{{ apic_username }}"
+              pwd: "{{ apic_password }}"
+        validate_certs: "{{ validate_certs }}"
+        status_code: 200
+      register: apic_login
+      
+    - name: Extract authentication token
+      set_fact:
+        apic_token: "{{ apic_login.json.imdata[0].aaaLogin.attributes.token }}"
+        
+    - name: Create LACP Interface Policy
+      uri:
+        url: "https://{{ apic_host }}/api/mo/uni/infra.json"
+        method: POST
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          lacpLagPol:
+            attributes:
+              name: "LACP_Active"
+              mode: "active"
+              ctrl: "fast-sel-hot-stdby,graceful-conv,susp-individual"
+        validate_certs: "{{ validate_certs }}"
+        status_code: [200, 201]
+        
+    - name: Create CDP Interface Policy
+      uri:
+        url: "https://{{ apic_host }}/api/mo/uni/infra.json"
+        method: POST
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          cdpIfPol:
+            attributes:
+              name: "CDP_Enabled"
+              adminSt: "enabled"
+        validate_certs: "{{ validate_certs }}"
+        status_code: [200, 201]
+        
+    - name: Create Link Level Policy
+      uri:
+        url: "https://{{ apic_host }}/api/mo/uni/infra.json"
+        method: POST
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          fabricHIfPol:
+            attributes:
+              name: "10G_Auto"
+              speed: "10G"
+              autoNeg: "on"
+        validate_certs: "{{ validate_certs }}"
+        status_code: [200, 201]
+
+
+- name: Migrate VLANs to EPGs - Phase 1 (Non-Critical)
+  hosts: localhost
+  gather_facts: no
+  vars:
+    apic_host: "{{ apic_ip }}"
+    apic_username: "{{ apic_user }}"
+    apic_password: "{{ apic_pass }}"
+    validate_certs: false
+    migration_phase: "phase1"
+    vlans_to_migrate: ["40", "50", "100"]  # Management, DMZ, Infrastructure
+    
+  tasks:
+    - name: Authenticate with APIC
+      uri:
+        url: "https://{{ apic_host }}/api/aaaLogin.json"
+        method: POST
+        body_format: json
+        body:
+          aaaUser:
+            attributes:
+              name: "{{ apic_username }}"
+              pwd: "{{ apic_password }}"
+        validate_certs: "{{ validate_certs }}"
+        status_code: 200
+      register: apic_login
+      
+    - name: Extract authentication token
+      set_fact:
+        apic_token: "{{ apic_login.json.imdata[0].aaaLogin.attributes.token }}"
+        
+    - name: Load VLAN to EPG mapping
+      set_fact:
+        vlan_mapping: "{{ lookup('file', '../configs/aci/migration-mappings/vlan-to-epg-mapping.csv') | 
+                         community.general.read_csv(skipinitialspace=true) }}"
+        
+    - name: Migrate VLANs in current phase
+      include_tasks: tasks/migrate_vlan_to_epg.yml
+      vars:
+        vlan_id: "{{ item }}"
+        vlan_data: "{{ vlan_mapping | selectattr('Nexus_VLAN', 'equalto', item) | first }}"
+      loop: "{{ vlans_to_migrate }}"
+      
+    - name: Validate EPG creation
+      include_tasks: tasks/validate_epg.yml
+      vars:
+        vlan_id: "{{ item }}"
+        vlan_data: "{{ vlan_mapping | selectattr('Nexus_VLAN', 'equalto', item) | first }}"
+      loop: "{{ vlans_to_migrate }}"
+      
+    - name: Generate phase migration report
+      template:
+        src: migration_report.j2
+        dest: "../migration_output/{{ migration_phase }}_report.md"
+      vars:
+        phase_name: "{{ migration_phase }}"
+        migrated_vlans: "{{ vlans_to_migrate }}"
+
+
+- name: Post-Migration Validation
+  hosts: localhost
+  gather_facts: no
+  vars:
+    apic_host: "{{ apic_ip }}"
+    apic_username: "{{ apic_user }}"
+    apic_password: "{{ apic_pass }}"
+    validate_certs: false
+    
+  tasks:
+    - name: Authenticate with APIC
+      uri:
+        url: "https://{{ apic_host }}/api/aaaLogin.json"
+        method: POST
+        body_format: json
+        body:
+          aaaUser:
+            attributes:
+              name: "{{ apic_username }}"
+              pwd: "{{ apic_password }}"
+        validate_certs: "{{ validate_certs }}"
+        status_code: 200
+      register: apic_login
+      
+    - name: Extract authentication token
+      set_fact:
+        apic_token: "{{ apic_login.json.imdata[0].aaaLogin.attributes.token }}"
+        
+    - name: Check fabric health post-migration
+      uri:
+        url: "https://{{ apic_host }}/api/class/fabricHealthTotal.json"
+        method: GET
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+        validate_certs: "{{ validate_certs }}"
+      register: post_migration_health
+      
+    - name: Validate EPG endpoint learning
+      uri:
+        url: "https://{{ apic_host }}/api/class/fvCEp.json"
+        method: GET
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+        validate_certs: "{{ validate_certs }}"
+      register: learned_endpoints
+      
+    - name: Display endpoint learning summary
+      debug:
+        msg: "Total endpoints learned: {{ learned_endpoints.json.imdata | length }}"
+        
+    - name: Check for new faults
+      uri:
+        url: "https://{{ apic_host }}/api/class/faultInst.json?query-target-filter=and(ge(faultInst.created,\"{{ ansible_date_time.iso8601 }}\"))"
+        method: GET
+        headers:
+          Cookie: "APIC-cookie={{ apic_token }}"
+        validate_certs: "{{ validate_certs }}"
+      register: new_faults
+      
+    - name: Report new faults if any
+      debug:
+        msg: "New faults since migration: {{ new_faults.json.imdata | length }}"
+      when: new_faults.json.imdata | length > 0
+      
+    - name: Generate final validation report
+      template:
+        src: validation_report.j2
+        dest: "../migration_output/final_validation_report.md"
+      vars:
+        health_score: "{{ post_migration_health.json.imdata[0].fabricHealthTotal.attributes.healthAvg if post_migration_health.json.imdata | length > 0 else 'Unknown' }}"
+        endpoints_count: "{{ learned_endpoints.json.imdata | length }}"
+        faults_count: "{{ new_faults.json.imdata | length }}"

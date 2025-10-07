@@ -1,0 +1,29 @@
+---
+# Ansible inventory file for ACI migration
+
+[apic]
+apic-01 ansible_host=192.168.1.100 apic_ip=192.168.1.100 apic_user=admin apic_pass=admin123
+
+[nexus_switches]
+core-01 ansible_host=192.168.100.1 ansible_user=admin ansible_password=admin123
+core-02 ansible_host=192.168.100.2 ansible_user=admin ansible_password=admin123
+agg-01 ansible_host=192.168.100.3 ansible_user=admin ansible_password=admin123
+agg-02 ansible_host=192.168.100.4 ansible_user=admin ansible_password=admin123
+access-01 ansible_host=192.168.100.5 ansible_user=admin ansible_password=admin123
+access-02 ansible_host=192.168.100.6 ansible_user=admin ansible_password=admin123
+
+[nexus_switches:vars]
+ansible_network_os=nxos
+ansible_connection=network_cli
+
+[all:vars]
+# APIC connection details
+apic_ip=192.168.1.100
+apic_user=admin
+apic_pass=admin123
+validate_certs=false
+
+# Migration settings
+migration_output_dir=../migration_output
+backup_dir=../backups
+config_dir=../configs

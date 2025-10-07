@@ -63,6 +63,111 @@ The comprehensive migration guide includes:
 | Optimization | 1 week | Fine-tune and optimize |
 | Decommission | 2 weeks | Remove legacy infrastructure |
 
+## Automation Tools
+
+This repository includes comprehensive automation tools to streamline the migration process:
+
+### Python Scripts
+
+**Core Automation Library** (`scripts/aci_migration_automation.py`)
+- `ACIConnector`: APIC API authentication and operations
+- `NexusConfigParser`: Parse existing Nexus configurations
+- `MigrationValidator`: Pre and post-migration validation
+- `TenantManager`: ACI tenant lifecycle management
+
+**Migration Orchestrator** (`scripts/migrate_orchestrator.py`)
+- End-to-end migration workflow automation
+- Pre-migration validation and health checks
+- Phased migration execution with rollback capabilities
+- Comprehensive reporting and logging
+
+### Ansible Playbooks
+
+**Main Migration Playbook** (`ansible/playbooks/aci_migration.yml`)
+- Pre-migration fabric health validation
+- Automated ACI tenant and policy deployment
+- VLAN to EPG migration in configurable phases
+- Post-migration validation and reporting
+
+**Key Features:**
+- Idempotent operations with proper error handling
+- Parallel execution for faster migration
+- Comprehensive logging and audit trails
+- Built-in rollback procedures
+
+### Configuration Templates
+
+**Nexus Configurations** (`configs/nexus/`)
+- Sample three-tier Nexus architecture configurations
+- vPC and LACP configurations
+- VLAN and interface mappings
+
+**ACI Templates** (`configs/aci/`)
+- Production tenant with three-tier application profile
+- Bridge domains, EPGs, and contract examples
+- VLAN to EPG migration mapping files
+- Fabric policies and interface profiles
+
+### Quick Start - Automation
+
+1. **Environment Setup**
+   ```bash
+   # Clone and setup environment
+   git clone https://github.com/ters-golemi/traditional-nexus-to-aci-migration.git
+   cd traditional-nexus-to-aci-migration
+   ./setup.sh
+   ```
+
+2. **Configure Credentials**
+   ```bash
+   # Update APIC credentials
+   vi migration_config.json
+   
+   # Update device inventory
+   vi ansible/inventory.yml
+   ```
+
+3. **Run Pre-Migration Checks**
+   ```bash
+   # Python method
+   source venv/bin/activate
+   python3 scripts/migrate_orchestrator.py --config migration_config.json --phase pre-check
+   
+   # Ansible method
+   cd ansible
+   ansible-playbook playbooks/aci_migration.yml --tags pre-check
+   ```
+
+4. **Execute Migration**
+   ```bash
+   # Deploy ACI configuration
+   python3 scripts/migrate_orchestrator.py --config migration_config.json --phase deploy
+   
+   # Migrate specific VLANs
+   python3 scripts/migrate_orchestrator.py --config migration_config.json --phase migrate --vlans "10,20,30"
+   ```
+
+5. **Validation and Reporting**
+   ```bash
+   # Generate final report
+   python3 scripts/migrate_orchestrator.py --config migration_config.json --phase report
+   ```
+
+### Migration Phases
+
+The automation supports phased migration approach:
+
+- **Phase 1**: Non-critical VLANs (Management, Infrastructure)
+- **Phase 2**: Application VLANs (Web, App tiers)
+- **Phase 3**: Critical VLANs (Database, Storage)
+
+Each phase includes:
+- Pre-phase validation
+- Configuration backup
+- Incremental deployment
+- Connectivity testing
+- Rollback capability if needed
+
 ## Target Architecture
 
 The migration transforms the traditional three-tier Nexus architecture into an ACI fabric:
@@ -89,8 +194,30 @@ Leaf Layer (2+ Leafs) → Servers/ESXi
 
 ```
 .
-├── README.md # This file
-└── MIGRATION_GUIDE.md # Complete migration documentation
+├── README.md                    # This file
+├── MIGRATION_GUIDE.md          # Complete migration documentation
+├── setup.sh                    # Environment setup script
+├── requirements.txt            # Python dependencies
+├── configs/                    # Configuration examples and templates
+│   ├── nexus/                 # Nexus switch configurations
+│   │   ├── current-state/     # Existing configurations
+│   │   ├── migration-prep/    # Pre-migration configs
+│   │   └── backup/           # Configuration backups
+│   └── aci/                   # ACI configuration templates
+│       ├── tenant-configs/    # Tenant JSON configurations
+│       ├── fabric-policies/   # Fabric-wide policies
+│       ├── networking/        # VRFs, Bridge Domains, L3Outs
+│       ├── application-policies/ # EPGs, Contracts, Filters
+│       └── migration-mappings/   # VLAN to EPG mappings
+├── scripts/                    # Python automation scripts
+│   ├── aci_migration_automation.py # Core automation library
+│   └── migrate_orchestrator.py     # Migration orchestration script
+├── ansible/                    # Ansible automation
+│   ├── playbooks/             # Migration playbooks
+│   ├── roles/                 # Reusable automation roles
+│   ├── inventory.yml          # Device inventory
+│   └── ansible.cfg           # Ansible configuration
+└── automation/                # Additional automation tools
 ```
 
 ## Prerequisites

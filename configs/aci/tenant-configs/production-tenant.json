@@ -1,0 +1,289 @@
+{
+  "fvTenant": {
+    "attributes": {
+      "name": "Production",
+      "descr": "Production tenant for migrated workloads from Nexus environment"
+    },
+    "children": [
+      {
+        "fvCtx": {
+          "attributes": {
+            "name": "Production-VRF",
+            "descr": "Main production VRF"
+          },
+          "children": []
+        }
+      },
+      {
+        "fvBD": {
+          "attributes": {
+            "name": "Web-BD",
+            "descr": "Bridge Domain for Web Tier (migrated from VLAN 10)",
+            "arpFlood": "yes",
+            "unicastRoute": "yes",
+            "unkMacUcastAct": "flood",
+            "unkMcastAct": "flood"
+          },
+          "children": [
+            {
+              "fvRsCtx": {
+                "attributes": {
+                  "tnFvCtxName": "Production-VRF"
+                }
+              }
+            },
+            {
+              "fvSubnet": {
+                "attributes": {
+                  "ip": "192.168.10.1/24",
+                  "descr": "Web Tier Gateway",
+                  "preferred": "yes",
+                  "scope": "public"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fvBD": {
+          "attributes": {
+            "name": "App-BD",
+            "descr": "Bridge Domain for Application Tier (migrated from VLAN 20)",
+            "arpFlood": "yes",
+            "unicastRoute": "yes",
+            "unkMacUcastAct": "flood",
+            "unkMcastAct": "flood"
+          },
+          "children": [
+            {
+              "fvRsCtx": {
+                "attributes": {
+                  "tnFvCtxName": "Production-VRF"
+                }
+              }
+            },
+            {
+              "fvSubnet": {
+                "attributes": {
+                  "ip": "192.168.20.1/24",
+                  "descr": "Application Tier Gateway",
+                  "preferred": "yes",
+                  "scope": "public"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fvBD": {
+          "attributes": {
+            "name": "DB-BD",
+            "descr": "Bridge Domain for Database Tier (migrated from VLAN 30)",
+            "arpFlood": "yes",
+            "unicastRoute": "yes",
+            "unkMacUcastAct": "flood",
+            "unkMcastAct": "flood"
+          },
+          "children": [
+            {
+              "fvRsCtx": {
+                "attributes": {
+                  "tnFvCtxName": "Production-VRF"
+                }
+              }
+            },
+            {
+              "fvSubnet": {
+                "attributes": {
+                  "ip": "192.168.30.1/24",
+                  "descr": "Database Tier Gateway",
+                  "preferred": "yes",
+                  "scope": "private"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fvAp": {
+          "attributes": {
+            "name": "Three-Tier-App",
+            "descr": "Application profile for three-tier application"
+          },
+          "children": [
+            {
+              "fvAEPg": {
+                "attributes": {
+                  "name": "Web-EPG",
+                  "descr": "Web servers EPG (migrated from VLAN 10)"
+                },
+                "children": [
+                  {
+                    "fvRsBd": {
+                      "attributes": {
+                        "tnFvBDName": "Web-BD"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "fvAEPg": {
+                "attributes": {
+                  "name": "App-EPG",
+                  "descr": "Application servers EPG (migrated from VLAN 20)"
+                },
+                "children": [
+                  {
+                    "fvRsBd": {
+                      "attributes": {
+                        "tnFvBDName": "App-BD"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "fvAEPg": {
+                "attributes": {
+                  "name": "DB-EPG",
+                  "descr": "Database servers EPG (migrated from VLAN 30)"
+                },
+                "children": [
+                  {
+                    "fvRsBd": {
+                      "attributes": {
+                        "tnFvBDName": "DB-BD"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "vzBrCP": {
+          "attributes": {
+            "name": "Web-to-App-Contract",
+            "descr": "Contract allowing web tier to communicate with application tier",
+            "scope": "tenant"
+          },
+          "children": [
+            {
+              "vzSubj": {
+                "attributes": {
+                  "name": "Web-to-App-Subject",
+                  "descr": "Subject for web to app communication"
+                },
+                "children": [
+                  {
+                    "vzRsSubjFiltAtt": {
+                      "attributes": {
+                        "tnVzFilterName": "HTTP-HTTPS-Filter"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "vzBrCP": {
+          "attributes": {
+            "name": "App-to-DB-Contract",
+            "descr": "Contract allowing application tier to communicate with database tier",
+            "scope": "tenant"
+          },
+          "children": [
+            {
+              "vzSubj": {
+                "attributes": {
+                  "name": "App-to-DB-Subject",
+                  "descr": "Subject for app to database communication"
+                },
+                "children": [
+                  {
+                    "vzRsSubjFiltAtt": {
+                      "attributes": {
+                        "tnVzFilterName": "Database-Filter"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "vzFilter": {
+          "attributes": {
+            "name": "HTTP-HTTPS-Filter",
+            "descr": "Filter for HTTP and HTTPS traffic"
+          },
+          "children": [
+            {
+              "vzEntry": {
+                "attributes": {
+                  "name": "HTTP",
+                  "dFromPort": "80",
+                  "dToPort": "80",
+                  "prot": "tcp"
+                }
+              }
+            },
+            {
+              "vzEntry": {
+                "attributes": {
+                  "name": "HTTPS",
+                  "dFromPort": "443",
+                  "dToPort": "443",
+                  "prot": "tcp"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "vzFilter": {
+          "attributes": {
+            "name": "Database-Filter",
+            "descr": "Filter for database traffic"
+          },
+          "children": [
+            {
+              "vzEntry": {
+                "attributes": {
+                  "name": "MySQL",
+                  "dFromPort": "3306",
+                  "dToPort": "3306",
+                  "prot": "tcp"
+                }
+              }
+            },
+            {
+              "vzEntry": {
+                "attributes": {
+                  "name": "PostgreSQL",
+                  "dFromPort": "5432",
+                  "dToPort": "5432",
+                  "prot": "tcp"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

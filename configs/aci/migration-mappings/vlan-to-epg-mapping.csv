@@ -1,0 +1,18 @@
+Nexus_VLAN,VLAN_Name,ACI_Tenant,ACI_Application_Profile,ACI_EPG,ACI_Bridge_Domain,Subnet,Migration_Priority,Notes
+10,WEB_TIER,Production,Three-Tier-App,Web-EPG,Web-BD,192.168.10.0/24,High,Public-facing web servers
+20,APP_TIER,Production,Three-Tier-App,App-EPG,App-BD,192.168.20.0/24,High,Application servers
+30,DB_TIER,Production,Three-Tier-App,DB-EPG,DB-BD,192.168.30.0/24,Critical,Database servers - migrate last
+40,MGMT,Management,Infrastructure,MGMT-EPG,MGMT-BD,192.168.40.0/24,Medium,Management network
+50,DMZ,Production,DMZ-App,DMZ-EPG,DMZ-BD,192.168.50.0/24,High,DMZ services
+100,INFRASTRUCTURE,Common,Infrastructure,Infra-EPG,Infra-BD,192.168.100.0/24,Low,Infrastructure services
+110,APP_VLAN_110,Production,Extended-Apps,App110-EPG,App110-BD,192.168.110.0/24,Medium,Additional application VLAN
+111,APP_VLAN_111,Production,Extended-Apps,App111-EPG,App111-BD,192.168.111.0/24,Medium,Additional application VLAN
+112,APP_VLAN_112,Production,Extended-Apps,App112-EPG,App112-BD,192.168.112.0/24,Medium,Additional application VLAN
+113,APP_VLAN_113,Production,Extended-Apps,App113-EPG,App113-BD,192.168.113.0/24,Medium,Additional application VLAN
+114,APP_VLAN_114,Production,Extended-Apps,App114-EPG,App114-BD,192.168.114.0/24,Medium,Additional application VLAN
+115,APP_VLAN_115,Production,Extended-Apps,App115-EPG,App115-BD,192.168.115.0/24,Medium,Additional application VLAN
+116,APP_VLAN_116,Production,Extended-Apps,App116-EPG,App116-BD,192.168.116.0/24,Medium,Additional application VLAN
+117,APP_VLAN_117,Production,Extended-Apps,App117-EPG,App117-BD,192.168.117.0/24,Medium,Additional application VLAN
+118,APP_VLAN_118,Production,Extended-Apps,App118-EPG,App118-BD,192.168.118.0/24,Medium,Additional application VLAN
+119,APP_VLAN_119,Production,Extended-Apps,App119-EPG,App119-BD,192.168.119.0/24,Medium,Additional application VLAN
+200,STORAGE,Production,Storage-App,Storage-EPG,Storage-BD,192.168.200.0/24,Critical,Storage network - migrate with DB

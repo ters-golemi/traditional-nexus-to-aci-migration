@@ -1,0 +1,48 @@
+# Python Dependencies for ACI Migration Automation
+# Install with: pip install -r requirements.txt
+
+# Core HTTP and API libraries
+requests>=2.28.0
+urllib3>=1.26.0
+
+# JSON and data processing
+jsonschema>=4.0.0
+pyyaml>=6.0
+
+# CSV processing for migration mappings
+pandas>=1.5.0
+
+# Logging and utilities
+colorlog>=6.7.0
+click>=8.1.0
+
+# Date and time handling
+python-dateutil>=2.8.0
+
+# Network automation libraries
+netmiko>=4.1.0
+paramiko>=2.11.0
+
+# Ansible requirements (if using Ansible automation)
+ansible>=6.0.0
+ansible-core>=2.13.0
+
+# ACI specific libraries
+acitoolkit>=0.4
+cisco-aci-cobra>=5.2.0
+
+# Testing and development
+pytest>=7.0.0
+pytest-cov>=4.0.0
+flake8>=5.0.0
+black>=22.0.0
+
+# Documentation
+mkdocs>=1.4.0
+mkdocs-material>=8.5.0
+
+# Optional: Jinja2 for templating
+Jinja2>=3.1.0
+
+# Optional: Rich for enhanced terminal output
+rich>=12.6.0
